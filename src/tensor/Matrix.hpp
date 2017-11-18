@@ -6,7 +6,7 @@
 
 //It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 
-namespase types {
+namespace types {
 
 	template<class T>
 	class matrix

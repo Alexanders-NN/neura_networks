@@ -1,7 +1,9 @@
 #pragma once
-#include<iostream>
-#include<vector>
-#include"Tensor.hpp"
+
+#include <iostream>
+#include <vector>
+
+#include "Tensor.hpp"
 
 class convolution_layer
 {
