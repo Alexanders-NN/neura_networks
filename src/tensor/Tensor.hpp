@@ -35,9 +35,6 @@ namespace types {
 				matrix_type new_matrix(width, heigth, pixels.begin() + i * width * heigth,
 				   						pixels.begin() + (i + 1) * width * heigth);
 				tensor_data.push_back(new_matrix);
-
-				/*tensor_data.push_back(std::vector<value_type>(pixels.begin() + i * width * heigth,
-					pixels.begin() + (i + 1) * width * heigth));*/
 			}
 		}
 
@@ -47,12 +44,6 @@ namespace types {
 			, heigth(tensor_heigth)
 			, depth(tensor_depth)
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-			//It should work: 
-			/*	
-				vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-				tensor t (2, 3, 2, v.begin(), v.end());
-			*/
 			if(tensor_depth * tensor_width * tensor_heigth != end - begin)
 			{
 				depth = 0;
@@ -70,19 +61,6 @@ namespace types {
 
 		tensor(std::initializer_list<matrix_type>& matrixes) 
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-			//It should work: 
-			/*	
-				matrix m1 = {...}
-				matrix m2 = {...}
-
-				tensor t = {
-					m1, 
-					m2,
-				};
-
-				// m1 and m2 should have same dimensions !!!
-			*/
 			depth = matrixes.size();
 			width = matrixes.begin()->width();
 			heigth = matrixes.begin()->heigth();
@@ -105,13 +83,10 @@ namespace types {
 			, width (obj.width)
 			, heigth (obj.heigth)
 			, tensor_data (obj.tensor_data)
-		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-		}
+		{}
 
 		tensor(tensor&& obj)
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			std::swap(depth, obj.depth);
 			std::swap(heigth, obj.heigth);
 			std::swap(width, obj.width);
@@ -120,7 +95,6 @@ namespace types {
 
 		tensor& operator=(const tensor& obj) 
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			if(this != &obj)
 			{
 				depth = obj.depth;
@@ -133,7 +107,6 @@ namespace types {
 
 		tensor& operator=(tensor&& obj) 
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			if(this != &obj)
 			{
 				depth = obj.depth;
@@ -150,17 +123,13 @@ namespace types {
 		}
 
 
-		value_type& operator()(size_type tensor_depth, size_type x, size_type y)
+		const value_type& operator()(size_type tensor_depth, size_type x, size_type y) const
 		{
-			//Rework, using the Matrix class from Matrix.hpp 
-			// until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			return tensor_data[tensor_depth][heigth * y + x];
 		}
 
-		value_type& operator()(size_type tensor_depth, size_type x, size_type y) const
+		value_type& operator()(size_type tensor_depth, size_type x, size_type y)
 		{
-			//Rework, using the Matrix class from Matrix.hpp 
-			// until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			return static_cast<value_type&>( const_cast<const value_type&> (*this)(tensor_depth, x, y) );
 		}
 

@@ -5,7 +5,6 @@
 #include <exception>
 
 
-//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 
 namespace types {
 
@@ -31,13 +30,10 @@ namespace types {
             : width (obj.width)
             , heigth (obj.heigth)
             , matrix_data (obj.matrix_data)
-		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-		}
+        {}
 
 		matrix(matrix&& obj)
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			std::swap(heigth, obj.heigth);
 			std::swap(width, obj.width);
 			std::swap(matrix_data, obj.matrix_data);
@@ -45,7 +41,6 @@ namespace types {
 
 		matrix& operator=(const matrix& obj) 
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
             if ( this != &obj )
             {
                 heigth = obj.heigth;
@@ -55,9 +50,8 @@ namespace types {
             return  *this;
 		}
 
-		matrix& operator=(matrix&& obj) //improve!
+		matrix& operator=(matrix&& obj)
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
             if ( this != &obj )
             {
                 heigth = obj.heigth;
@@ -71,31 +65,8 @@ namespace types {
             return  *this;
 		}
 
-		matrix(const std::initializer_list<std::initializer_list<value_type>>& rows)
+		matrix(std::initializer_list<std::initializer_list<value_type>> rows)
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-			/*
-				//It should work: 
-				matrix m = {
-					{ 0,   5,  3, 7  },
-					{ 0,  42,  3, 7  },
-					{ 50,  5, -3, 7  },
-					{ 0,  15,  3, 7  },
-					{ 0,   5,  3, 71 },
-					{ 0,   5,  3, 73 },
-				};
-				
-				//But it shouldn't:
-				matrix m = {
-					{ 0,   5,  3, 7  },
-					{ 0,  42,  3, 7  },
-					{ 50,  5, -3, 7  },
-					{ 0,  15,  3 },    // <- Row size mismatch!!! Throw exception (any type U want)
-					{ 0,   5,  3, 71 },
-					{ 0,   5,  3, 73 },
-				};
-
-			*/
             heigth = rows.size();
             width = rows.begin()->size();
             for ( auto& h : rows )
@@ -116,7 +87,7 @@ namespace types {
 		matrix(size_type matrix_width, size_type matrix_heigth, It begin, It end)
 			: width( matrix_width )
 			, heigth( matrix_heigth )
-			, matrix_data( begin, end ) // Does it work?
+			, matrix_data( begin, end )
 		{
 			if( matrix.size() != width * heigth ) {
 				width = 0;

@@ -1,11 +1,11 @@
-#include <functional>
+#include 		<functional>
 
 #include "../tensor/Matrix.hpp"
 #include "../tensor/Tensor.hpp"
 
 
 
-namespace /*think up a name*/ {
+namespace layers {
 
 	enum class edge_type {
 		none,
@@ -14,9 +14,8 @@ namespace /*think up a name*/ {
 		mirror
 	};
 	
-	using matrix_convolution_f = std::function<
-									types::matrix::value_type(types::matrix, types::matrix,x, y)
-								>;
+	using matrix_convolution_f = std::function<types::matrix::value_type(types::matrix matrix, types::matrix kernel,
+																		 size_t x, size_t y)>;
 
 
 	matrix_convolution_f matrix_convolution_no_edge = 
@@ -24,15 +23,42 @@ namespace /*think up a name*/ {
 				types::matrix kernel, 
 				size_t x, size_t y) -> types::matrix::value_type
 			{
-				//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+				int summ = 0;
+				for (size_t i = 0; i < kernel.heigth(); ++i)
+				{
+					for (size_t j = 0; j < kernel.width(); ++j)
+					{
+						int new_x = x+ j;
+						int new_y = y + i;
+						if ( new_x - origin_x < 0 )
+							new_x = 0;
+						if ( new_y - origin_y < 0 )
+							new_y = 0;
+						summ += matrix[new_y][new_x] * kernel[i][j];
+					}
+				}
+				return summ;
 			};
 
 	matrix_convolution_f matrix_convolution_same = 
-			[](types::matrix matrix, 
-				types::matrix kernel, 
-				size_t x, size_t y) -> types::matrix::value_type
+			[](types::matrix matrix,
+			   types::matrix kernel,
+			   size_t x, size_t y,
+			   size_t origin_x = 0, size_t origin_y = 0) -> types::matrix::value_type
 			{
-				//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+				int summ = 0;
+				for (size_t i = 0; i < kernel.heigth(); ++i)
+				{
+					for (size_t j = 0; j < kernel.width(); ++j)
+					{
+						if ( (x + j - origin_x < 0) || (y + i - origin_y < 0) )
+						{
+							throw std::out_of_range("Error! Invalid index!")
+						}
+						summ += matrix[y + i][x + j] * kernel[i][y];
+					}
+				}
+				return summ;
 			};
 
 	matrix_convolution_f matrix_convolution_mirror = 
@@ -40,15 +66,41 @@ namespace /*think up a name*/ {
 				types::matrix kernel, 
 				size_t x, size_t y) -> types::matrix::value_type
 			{
-				//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+				int summ = 0;
+				for (size_t i = 0; i < kernel.heigth(); ++i)
+				{
+					for (size_t j = 0; j < kernel.width(); ++j)
+					{
+						int new_x = x+ j;
+						int new_y = y + i;
+						if ( new_x - origin_x < 0 )
+							new_x *= -1;
+						if ( new_y - origin_y < 0 )
+							new_y *= -1;
+						summ += matrix[new_y][new_x] * kernel[i][j];
+					}
+				}
+				return summ;
 			};
 
 	matrix_convolution_f matrix_convolution_zeros = 
-			[](types::matrix matrix, 
-				types::matrix kernel, 
-				size_t x, size_t y) -> types::matrix::value_type
+			[](types::matrix matrix,
+			   types::matrix kernel,
+			   size_t x, size_t y,
+			   size_t origin_x = 0, size_t origin_y = 0) -> types::matrix::value_type
 			{
-				//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+				int summ = 0;
+				for (size_t i = 0; i < kernel.heigth(); ++i)
+				{
+					for (size_t j = 0; j < kernel.width(); ++j)
+					{
+						if ( (x + j - origin_x >= 0) && (y + i - origin_y >= 0) )
+						{
+							summ += matrix[y + i][x + j] * kernel[i][y];
+						}
+					}
+				}
+				return summ;
 			};
 
 	
@@ -79,9 +131,9 @@ namespace /*think up a name*/ {
 	*/
 
 
-	matrix_convolution_f convolution(edge_type conv_edge_type = edge_type::/*Choose your favorite type*/)
+	matrix_convolution_f convolution(edge_type conv_edge_type = edge_type::m irror)
 	{
-		switch ( conv_edge_type ) {
+		switch ( conv_edge_type  ) {
 			case edge_type::none:
 				return matrix_convolution_no_edge();
 			
