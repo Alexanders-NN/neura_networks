@@ -15,13 +15,15 @@ namespace layers {
 	};
 	
 	using matrix_convolution_f = std::function<types::matrix::value_type(types::matrix matrix, types::matrix kernel,
-																		 size_t x, size_t y)>;
+																		 size_t x, size_t y,
+																		 size_t origin_x, size_t origin_y)>;
 
 
 	matrix_convolution_f matrix_convolution_no_edge = 
-			[](types::matrix matrix, 
-				types::matrix kernel, 
-				size_t x, size_t y) -> types::matrix::value_type
+			[](types::matrix matrix,
+			   types::matrix kernel,
+			   size_t x, size_t y,
+			   size_t origin_x = 0, size_t origin_y = 0) -> types::matrix::value_type
 			{
 				int summ = 0;
 				for (size_t i = 0; i < kernel.heigth(); ++i)
@@ -62,9 +64,10 @@ namespace layers {
 			};
 
 	matrix_convolution_f matrix_convolution_mirror = 
-			[](types::matrix matrix, 
-				types::matrix kernel, 
-				size_t x, size_t y) -> types::matrix::value_type
+			[](types::matrix matrix,
+			   types::matrix kernel,
+			   size_t x, size_t y,
+			   size_t origin_x = 0, size_t origin_y = 0) -> types::matrix::value_type
 			{
 				int summ = 0;
 				for (size_t i = 0; i < kernel.heigth(); ++i)
