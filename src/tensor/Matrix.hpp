@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <exception>
 
 
 //It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
@@ -19,34 +20,58 @@ namespace types {
 
 	public:
 
-		matrix(value_type matrix_width = 0, value_type matrix_heigth = 0)
+		matrix(size_type matrix_width = 0, size_type matrix_heigth = 0)
 			: width( matrix_width )
 			, heigth( matrix_heigth )
 			, matrix_data( matrix_width * matrix_heigth )
 		{}
 
 
-		matrix(const matrix& obj) 
+		matrix(const matrix& obj)
+            : width (obj.width)
+            , heigth (obj.heigth)
+            , matrix_data (obj.matrix_data)
 		{
 			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 		}
 
-		matrix(matrix&& obj) 
+		matrix(matrix&& obj)
 		{
 			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+			std::swap(heigth, obj.heigth);
+			std::swap(width, obj.width);
+			std::swap(matrix_data, obj.matrix_data);
 		}
 
 		matrix& operator=(const matrix& obj) 
 		{
 			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+            if ( this != &obj )
+            {
+                heigth = obj.heigth;
+                width = obj.width;
+                matrix_data = obj.matrix_data;
+            }
+            return  *this;
 		}
 
-		matrix& operator=(matrix&& obj) 
+		matrix& operator=(matrix&& obj) //improve!
 		{
 			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+            if ( this != &obj )
+            {
+                heigth = obj.heigth;
+                width = obj.width;
+                matrix_data = obj.matrix_data;
+
+                obj.heigth = 0;
+                obj.width = 0;
+                obj.matrix_data.clear();
+            }
+            return  *this;
 		}
 
-		matrix(std::initializer_list<std::initializer_list<value_type>>& rows)
+		matrix(const std::initializer_list<std::initializer_list<value_type>>& rows)
 		{
 			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 			/*
@@ -71,11 +96,24 @@ namespace types {
 				};
 
 			*/
+            heigth = rows.size();
+            width = rows.begin()->size();
+            for ( auto& h : rows )
+            {
+                if (h.size() != width)
+				{
+					heigth = 0;
+					width = 0;
+					matrix_data.clear();
+					throw std::logic_error("Error! Incorrect initialization matrix");
+				}
+                matrix_data.insert( matrix_data.end(), h.begin(), h.end()() );
+            }
 		}
 
 
 		template<class It>
-		matrix(value_type matrix_width, value_type matrix_heigth, It begin, It end)
+		matrix(size_type matrix_width, size_type matrix_heigth, It begin, It end)
 			: width( matrix_width )
 			, heigth( matrix_heigth )
 			, matrix_data( begin, end ) // Does it work?
@@ -84,11 +122,12 @@ namespace types {
 				width = 0;
 				heigth = 0;
 				matrix_data.clear();
+                throw std::logic_error( "Error! Incorrect initialization matrix" );
 			}
 		}
 
 		template<class It>
-		bool fill_by_sequence(It begin, It end) 
+		bool fill_by_sequence(It begin, It end) //???
 		{
 			matrix_type new_matrix( begin, end );
 
@@ -112,7 +151,6 @@ namespace types {
 			return static_cast<value_type&>( const_cast<const matrix&>(*this)( x, y ) );
 		}
 
-
 		size_type width() const
 		{
 			return width;
@@ -123,7 +161,10 @@ namespace types {
 			return heigth;
 		}
 
-		~matrix() = default;
+		const matrix_type& data() const
+		{
+			return matrix_data;
+		}
 
 	protected:
 		size_type width;
