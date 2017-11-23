@@ -111,6 +111,14 @@ namespace types {
 			return true;
 		}
 
+        matrix& operator+=(const matrix& rhs)
+        {
+            for( size_t i = 0; i < this->matrix_data().size(); ++i)
+            {
+                this->matrix_data()[i] += rhs.matrix_data()[i];
+            }
+            return *this;
+        }
 
 		const value_type& operator()(size_type x, size_type y) const
 		{
@@ -143,4 +151,11 @@ namespace types {
 		matrix_type matrix_data;
 	};
 
+
+    matrix operator +(const matrix& a, const matrix& b)
+    {
+        matrix rez(a);
+        rez += b;
+        return rez;
+    }
 }
