@@ -14,151 +14,166 @@ namespace types {
     {
         using value_type = T;
         using size_type = size_t;
-        using matrix_type = matrix;
+        using matrix_type = matrix<value_type>;
         using tensor_type = std::vector<matrix_type>;
 
     public:
         tensor()
-                : width(0)
-                , heigth(0)
-                , depth(0)
-                , tensor_data()
+	        : _width( 0 )
+	        , _height( 0 )
+	        , _depth( 0 )
+	        , _tensor_data()
         {}
 
-        tensor(const std::vector<T> & pixels, size_type tensor_depth, size_type tensor_width, size_type tensor_heigth)//exeption?
-                : width(tensor_width)
-                , heigth(tensor_heigth)
-                , depth(tensor_depth)
+        /*
+        tensor( const std::vector<T>& pixels, size_type depth, size_type width, size_type heigth)
+                : _width( width )
+                , _heigth( heigth )
+                , _depth( depth )
         {
-            for (size_type i = 0; i < depth; ++i)
+            for( size_type i = 0; i < _depth; ++i )
             {
                 matrix_type new_matrix(width, heigth, pixels.begin() + i * width * heigth,
                                        pixels.begin() + (i + 1) * width * heigth);
-                tensor_data.push_back(new_matrix);
+
+                _tensor_data.push_back(new_matrix);
             }
         }
+        */
 
         template<class It>
-        tensor(It begin, It end, size_type tensor_depth, size_type tensor_width, size_type tensor_heigth)
-                : width(tensor_width)
-                , heigth(tensor_heigth)
-                , depth(tensor_depth)
+        tensor( It begin, It end, size_type depth, size_type height, size_type width )
+                : _width( width )
+                , _height( height )
+                , _depth( depth )
         {
-            if(tensor_depth * tensor_width * tensor_heigth != end - begin)
+            if( _depth * _width * _height != end - begin )
             {
-                depth = 0;
-                width = 0;
-                heigth = 0;
-                throw std::logic_error("Error! Incorrect initialization tensor");
+                _depth = 0;
+                _width = 0;
+                _height = 0;
+
+                throw std::logic_error( "Error! Incorrect initialization tensor" );
             }
-            for (size_type i = 0; i < depth; ++i)
+            for( size_type i = 0; i < _depth; ++i )
             {
-                matrix_type new_matrix(width, heigth, begin + i * width * heigth,
-                                       begin + (i + 1) * width * heigth);
-                tensor_data.push_back(new_matrix);
+                matrix_type new_matrix( _height, _width, 
+	                	begin + i * width * height,
+	                    begin + (i + 1) * width * height
+                    );
+
+                _tensor_data.push_back( std::move( new_matrix ) );
             }
         }
 
         tensor(std::initializer_list<matrix_type>& matrixes)
         {
-            depth = matrixes.size();
-            width = matrixes.begin()->get_width();
-            heigth = matrixes.begin()->get_heigth();
-            for(auto & m : matrixes)
-            {
-                if( (m.get_heigth() != heigth) || (m.get_width() != width) )
-                {
-                    depth = 0;
-                    width = 0;
-                    heigth = 0;
-                    tensor_data.clear();
-                    throw std::logic_error("Error! Incorrect initialization tensor");
-                }
-                tensor_data.push_back(m);
+            _depth = matrixes.size();
+
+            if( ! _depth ) {
+            	_width = matrixes.begin()->width();
+	            _height = matrixes.begin()->height();
+
+	            for( auto& matrix : matrixes )
+	            {
+	                if( ( matrix.height() != _height ) || ( matrix.width() != _width ) )
+	                {
+	                    _depth = 0;
+	                    _width = 0;
+	                    _height = 0;
+	                    _tensor_data.clear();
+
+	                    throw std::logic_error( "Error! Incorrect initialization tensor" );
+	                }
+	                _tensor_data.push_back( std::move( matrix ) );
+	            }
             }
+            else {
+            	_depth = 0;
+                _width = 0;
+                _height = 0;
+	        }
         }
 
-        tensor(const tensor& obj)
-                : depth (obj.depth)
-                , width (obj.width)
-                , heigth (obj.heigth)
-                , tensor_data (obj.tensor_data)
+        tensor( const tensor& obj )
+                : _depth (obj._depth)
+                , _width (obj._width)
+                , _height( obj._height )
+                , _tensor_data( obj._tensor_data )
         {}
 
-        tensor(tensor&& obj)
+        tensor( tensor&& obj )
         {
-            std::swap(depth, obj.depth);
-            std::swap(heigth, obj.heigth);
-            std::swap(width, obj.width);
-            std::swap(tensor_data, obj.tensor_data);
+            std::swap( _depth, obj._depth );
+            std::swap( _height, obj._height );
+            std::swap( _width, obj._width );
+            std::swap( _tensor_data, obj._tensor_data );
         }
 
-        tensor& operator=(const tensor& obj)
+        tensor& operator=( const tensor& obj )
         {
-            if(this != &obj)
+            if( this != &obj )
             {
-                depth = obj.depth;
-                width = obj.width;
-                heigth = obj.heigth;
-                tensor_data = obj.tensor_data;
+                _depth = obj._depth;
+                _width = obj._width;
+                _height = obj._height;
+
+                _tensor_data = obj._tensor_data;
             }
             return *this;
         }
 
-        tensor& operator=(tensor&& obj)
+        tensor& operator=( tensor&& obj )
         {
-            if(this != &obj)
+            if( this != &obj )
             {
-                depth = obj.depth;
-                width = obj.width;
-                heigth = obj.heigth;
-                tensor_data = obj.tensor_data;
-
-                obj.depth = 0;
-                obj.width = 0;
-                obj.heigth = 0;
-                obj.tensor_data.clear();
+	            std::swap( _depth, obj._depth );
+	            std::swap( _height, obj._height );
+	            std::swap( _width, obj._width );
+	            std::swap( _tensor_data, obj._tensor_data );
             }
             return *this;
         }
 
 
-        const value_type& operator()(size_type tensor_depth, size_type x, size_type y) const
+        const value_type& operator()( size_type depth, size_type row, size_type col ) const
         {
-            return tensor_data[tensor_depth][heigth * y + x];
+            return _tensor_data[ depth ]( row, col );
         }
 
-        value_type& operator()(size_type tensor_depth, size_type x, size_type y)
+        value_type& operator()( size_type depth, size_type row, size_type col )
         {
-            return static_cast<value_type&>( const_cast<const value_type&> (*this)(tensor_depth, x, y) );
+            return static_cast<value_type&>( 
+            		const_cast<const tensor&>(*this)( depth, row, col ) 
+            	);
         }
 
-        size_type get_width() const
+        size_type width() const
         {
-            return width;
+            return _width;
         }
 
-        size_type get_heigth() const
+        size_type height() const
         {
-            return heigth;
+            return _height;
         }
 
-        size_type get_depth() const
+        size_type depth() const
         {
-            return depth;
+            return _depth;
         }
 
         const tensor_type& data() const
         {
-            return tensor_data;
+            return _tensor_data;
         }
 
     protected:
-        size_type width;
-        size_type heigth;
-        size_type depth;
+        size_type _width;
+        size_type _height;
+        size_type _depth;
 
-        tensor_type tensor_data;
+        tensor_type _tensor_data;
 
     };
 }

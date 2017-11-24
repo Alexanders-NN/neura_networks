@@ -14,148 +14,142 @@ namespace types {
 
 	public:
 		using value_type = T;
-		using size_type = size_t;
+		using size_type = std::size_t;
 		using matrix_type = std::vector<value_type>;
 
 	public:
 
-		matrix(size_type matrix_width = 0, size_type matrix_heigth = 0)
-			: width( matrix_width )
-			, heigth( matrix_heigth )
-			, matrix_data( matrix_width * matrix_heigth )
+
+		matrix( size_type height = 0, size_type width = 0,
+			value_type default_value = value_type(0))
+			: _width( width )
+			, _height( height )
+			, _matrix_data( width * height, default_value )
 		{}
 
 
-		matrix(const matrix& obj)
-            : width (obj.width)
-            , heigth (obj.heigth)
-            , matrix_data (obj.matrix_data)
+		matrix( const matrix& obj )
+            : _width( obj._width )
+            , _height( obj._height )
+            , _matrix_data( obj._matrix_data )
         {}
 
-		matrix(matrix&& obj)
+		matrix( matrix&& obj )
 		{
-			std::swap(heigth, obj.heigth);
-			std::swap(width, obj.width);
-			std::swap(matrix_data, obj.matrix_data);
+			std::swap( _height, obj._height);
+			std::swap( _width, obj._width);
+			std::swap( _matrix_data, obj._matrix_data);
 		}
 
-		matrix& operator=(const matrix& obj) 
+		matrix& operator=( const matrix& obj ) 
 		{
             if ( this != &obj )
             {
-                heigth = obj.heigth;
-                width = obj.width;
-                matrix_data = obj.matrix_data;
+                _height = obj._height;
+                _width = obj._width;
+                _matrix_data = obj._matrix_data;
             }
             return  *this;
 		}
 
-		matrix& operator=(matrix&& obj)
+		matrix& operator=( matrix&& obj )
 		{
             if ( this != &obj )
             {
-                heigth = obj.heigth;
-                width = obj.width;
-                matrix_data = obj.matrix_data;
-
-                obj.heigth = 0;
-                obj.width = 0;
-                obj.matrix_data.clear();
+                std::swap( _height, obj._height);
+				std::swap( _width, obj._width);
+				std::swap( _matrix_data, obj._matrix_data);
             }
             return  *this;
 		}
 
-		matrix(std::initializer_list<std::initializer_list<value_type>> rows)
+		matrix( const std::initializer_list<std::initializer_list<value_type>>& rows )
 		{
-            heigth = rows.size();
-            width = rows.begin()->size();
-            for ( auto& h : rows )
-            {
-                if (h.size() != width)
-				{
-					heigth = 0;
-					width = 0;
-					matrix_data.clear();
-					throw std::logic_error("Error! Incorrect initialization matrix");
-				}
-                matrix_data.insert( matrix_data.end(), h.begin(), h.end()() );
-            }
+            _height = rows.size();
+
+            if( _height ) {
+
+	          	_width  = rows.begin()->size();
+
+	            for ( auto& row : rows )
+	            {
+	                if ( row.size() != _width )
+					{
+						_height = 0;
+						_width = 0;
+						_matrix_data.clear();
+
+						throw std::logic_error( "Error! Incorrect initialization matrix" );
+					}
+	                _matrix_data.insert( _matrix_data.end(), std::begin(row), std::end(row) );
+	            }
+	       	}
+	       	else {
+	       		_width = 0;
+	       	}
 		}
 
 
 		template<class It>
-		matrix(size_type matrix_width, size_type matrix_heigth, It begin, It end)
-			: width( matrix_width )
-			, heigth( matrix_heigth )
-			, matrix_data( begin, end )
+		matrix( size_type height, size_type width, It begin, It end )
+			: _width( width )
+			, _height( height )
+			, _matrix_data( begin, end )
 		{
-			if( matrix.size() != width * heigth ) {
-				width = 0;
-				heigth = 0;
-				matrix_data.clear();
+			if( _matrix_data.size() != _width * _height ) {
+				_width = 0;
+				_height = 0;
+				_matrix_data.clear();
+                
                 throw std::logic_error( "Error! Incorrect initialization matrix" );
 			}
 		}
 
-		template<class It>
-		bool fill_by_sequence(It begin, It end) //???
-		{
-			matrix_type new_matrix( begin, end );
-
-			if( matrix_data.size() != width * heigth ) {
-				return false;
-			}
-
-			matrix_data = std::move(new_matrix);
-
-			return true;
-		}
-
-        matrix& operator+=(const matrix& rhs)
+        matrix& operator+=( const matrix& rhs )
         {
-            for( size_t i = 0; i < this->matrix_data().size(); ++i)
+            for( size_t i = 0; i < this->_matrix_data.size(); ++i )
             {
-                this->matrix_data()[i] += rhs.matrix_data()[i];
+                this->_matrix_data[i] += rhs._matrix_data[i];
             }
             return *this;
         }
 
-		const value_type& operator()(size_type x, size_type y) const
+		const value_type& operator()( size_type row, size_type col ) const
 		{
-			return matrix_data[heigth * y + x];
+			return _matrix_data[ _width * row + col ];
 		}
 
-		value_type& operator()(size_type x, size_type y)
+		value_type& operator()( size_type row, size_type col )
 		{
-			return static_cast<value_type&>( const_cast<const matrix&>(*this)( x, y ) );
+			return const_cast<value_type&>( const_cast<const matrix&>(*this)( row, col ) );
 		}
 
 		size_type width() const
 		{
-			return width;
+			return _width;
 		}
 
-		size_type heigth() const
+		size_type height() const
 		{
-			return heigth;
+			return _height;
 		}
 
 		const matrix_type& data() const
 		{
-			return matrix_data;
+			return _matrix_data;
 		}
 
 	protected:
-		size_type width;
-		size_type heigth;
-		matrix_type matrix_data;
+		size_type   _width;
+		size_type   _height;
+		matrix_type _matrix_data;
 	};
 
-
-    matrix operator +(const matrix& a, const matrix& b)
+	template< class T >
+    matrix<T> operator+( const matrix<T>& lhs, const matrix<T>& rhs )
     {
-        matrix rez(a);
-        rez += b;
-        return rez;
+        auto tmp = lhs;
+        tmp += rhs;
+        return tmp;
     }
 }
