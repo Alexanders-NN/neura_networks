@@ -1,23 +1,22 @@
 #include <string>
 
 #include "../src/tensor/Matrix.hpp"
-#include "../src/tensor/Tensor.hpp"
 
 #include "main_test.hpp"
+
 
 
 TEST_CASE( "Testing constructors ( and operator = )" )
 {
 	SECTION( "Null constructor" )
 	{
-		auto empty_tensor = types::tensor<float>();
+		auto empty_matrix = types::matrix<float>();
 
-		INFO( "Constructor requires layer count, row counts, column counts and default value." );
-		INFO( "Default is ( 0, 0, 0, value_type(0) ) ." );
+		INFO( "Constructor requires row counts, column counts and default value." );
+		INFO( "Default is ( 0, 0, value_type(0) ) ." );
 
-		REQUIRE( empty_tensor.width() == 0 );
-		REQUIRE( empty_tensor.height() == 0 );
-		REQUIRE( empty_tensor.depth() == 0 );
+		REQUIRE( empty_matrix.width() == 0 );
+		REQUIRE( empty_matrix.height() == 0 );
 	}
 
 	SECTION( "Constructor with default value" )
@@ -161,3 +160,54 @@ TEST_CASE( "Testing constructors ( and operator = )" )
 		}
 	}	
 }
+
+
+TEST_CASE( "Testing operator + " )
+{
+	SECTION( "type = <int>" )
+	{
+		types::matrix<int> squares( 3, 8 );
+		types::matrix<int> numbers = squares;
+		types::matrix<int> units( squares.height(), numbers.width(), 1 );
+
+		auto f = []( auto x, auto y ){ return 3*x + y; };
+
+		for( size_t i = 0; i < 3; ++i )
+			for( size_t j = 0; j < 8; ++j ) {
+				numbers( i, j ) = f( i, j );
+				squares( i, j ) = f( i, j ) * numbers( i, j );
+			}
+
+		auto result = squares;
+
+		result += numbers + numbers + units;
+
+		for( size_t i = 0; i < 3; ++i )
+			for( size_t j = 0; j < 8; ++j ) 
+				REQUIRE( result( i, j ) ==  ((f( i, j ) + 1) * (f( i, j ) + 1)) );
+	}
+
+	SECTION( "type = <std::string>" )
+	{
+		types::matrix<std::string> words1 = {
+			{ std::string( "Neural" ), std::string( "are" ) },
+			{ std::string( "q1" ), std::string( "q3" ) },
+		};
+
+		types::matrix<std::string> spaces( 2, 2, std::string(" ") );
+
+		types::matrix<std::string> words2 = {
+			{ std::string( "networks" ), std::string( "cool" ) },
+			{ std::string( "q2" ), std::string( "q4" ) },
+		};
+
+		auto result = words1 + spaces;
+		result += words2;
+
+		REQUIRE( result( 0, 0 ) + " " + result( 0, 1 ) == "Neural networks are cool" );
+		REQUIRE( result( 1, 0 ) == "q1 q2" );
+	}
+}
+
+
+

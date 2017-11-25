@@ -35,10 +35,13 @@ namespace types {
         {}
 
 		matrix( matrix&& obj )
+            : _width( 0 )
+            , _height( 0 )
+            , _matrix_data()
 		{
-			std::swap( _height, obj._height);
-			std::swap( _width, obj._width);
-			std::swap( _matrix_data, obj._matrix_data);
+			std::swap( _height, obj._height );
+			std::swap( _width, obj._width );
+			std::swap( _matrix_data, obj._matrix_data );
 		}
 
 		matrix& operator=( const matrix& obj ) 
