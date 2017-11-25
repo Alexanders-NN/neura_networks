@@ -40,6 +40,38 @@ TEST_CASE( "Testing constructors ( and operator = )" )
 		}
 	}
 
+	SECTION( "Constructor with init function" )
+	{
+
+		SECTION( " - lambda" )
+		{
+			
+			INFO( "Constructing matrix 3x15" );
+			std::vector<int> a = { 3, 7, 2, 1, 5 };
+			std::vector<int> b = { 3, 2, 1, 6 };
+			auto matrix = types::matrix<int>( a.size(), b.size(), 
+							[ &a, &b ]( auto row, auto col )
+							{
+								return a[row] * b[col];
+							}
+						 );
+
+
+			SECTION( "Checking size" )
+			{
+				REQUIRE( matrix.width() == 4 );
+				REQUIRE( matrix.height() == 5 );
+			}
+
+			SECTION( "Chcecking cells" )
+			{
+				for( size_t r = 0; r < matrix.height(); ++r )
+					for( size_t c = 0; c < matrix.width(); ++c )
+						REQUIRE( matrix( r, c ) == a[r] * b[c] );
+			}
+		}
+	}
+
 	SECTION( "Constructor from init_lists" )
 	{
 		INFO( "Constructing matrix 6x4" );
@@ -161,6 +193,27 @@ TEST_CASE( "Testing constructors ( and operator = )" )
 	}	
 }
 
+TEST_CASE( "Testing equality operator")
+{
+	SECTION( "Simple test 1" )
+	{
+		types::matrix<int> a = {
+			{ 1, 2, 3 },
+			{ 1, 4, 9 },
+		};
+
+		auto b = types::matrix<int>( 2, 3, []( auto r, auto c ){ return pow(( c + 1 ), r+1);});
+
+		types::matrix<int> c = {
+			{ 1, 2, 3 },
+			{ 1, 42, 9 },
+		};
+
+		REQUIRE( a == b );
+		REQUIRE( a != c );
+		REQUIRE( b != c );
+	}
+}
 
 TEST_CASE( "Testing operator + " )
 {
@@ -209,5 +262,28 @@ TEST_CASE( "Testing operator + " )
 	}
 }
 
+TEST_CASE( "Testing matrix multiplication" )
+{
+	SECTION( "Test1" )
+	{
+		types::matrix<int> a = {
+			{ 1, 2, 3 },
+			{ 1, 4, 9 },
+		};
+
+		types::matrix<int> b = {
+			{ 1, 2, 3, 5, 8, 13 },
+			{ 3, 2, 0, 6, 9, -3 },
+			{ 1, 0, 3, 5, 8, -1 },
+		};
+
+		types::matrix<int> axb = {
+			{ 10, 6,  12, 32, 50,   4 },
+			{ 22, 10, 30, 74, 116, -8 }
+		};
+
+		REQUIRE( a * b == axb );
+	}
+}
 
 

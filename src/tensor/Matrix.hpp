@@ -1,8 +1,9 @@
 #pragma once
 
+#include <exception>
+#include <functional>
 #include <iostream>
 #include <vector>
-#include <exception>
 
 
 
@@ -16,6 +17,7 @@ namespace types {
 		using value_type = T;
 		using size_type = std::size_t;
 		using matrix_type = std::vector<value_type>;
+		using init_func_type = std::function<value_type( size_type, size_type )>;
 
 	public:
 
@@ -26,6 +28,16 @@ namespace types {
 			, _height( height )
 			, _matrix_data( width * height, default_value )
 		{}
+
+		matrix( size_type height, size_type width, init_func_type function )
+			: _width( width )
+			, _height( height )
+			, _matrix_data( width * height )
+		{
+			for( size_type row = 0; row < _height; ++row )
+				for( size_type col = 0; col < _width; ++col )
+					(*this)( row, col ) = function( row, col );
+		}	
 
 
 		matrix( const matrix& obj )
@@ -108,15 +120,6 @@ namespace types {
 			}
 		}
 
-        matrix& operator+=( const matrix& rhs )
-        {
-            for( size_t i = 0; i < this->_matrix_data.size(); ++i )
-            {
-                this->_matrix_data[i] += rhs._matrix_data[i];
-            }
-            return *this;
-        }
-
 		const value_type& operator()( size_type row, size_type col ) const
 		{
 			return _matrix_data[ _width * row + col ];
@@ -142,17 +145,76 @@ namespace types {
 			return _matrix_data;
 		}
 
+		matrix& operator+=( const matrix& rhs )
+        {
+        	_check_size_with_exception( *this, rhs );
+
+            for( size_t i = 0; i < this->_matrix_data.size(); ++i )
+            {
+                this->_matrix_data[i] += rhs._matrix_data[i];
+            }
+            return *this;
+        }
+
+        friend bool operator==( const matrix& lhs, const matrix& rhs )
+        {
+        	_check_size_with_exception( lhs, rhs );
+
+        	for( size_t i = 0; i < lhs._matrix_data.size(); ++i )
+        		if( lhs._matrix_data[i] != rhs._matrix_data[i] )
+        			return false;
+
+        	return true;
+        }
+
+        friend bool operator!=( const matrix& lhs, const matrix& rhs )
+        {
+        	_check_size_with_exception( lhs, rhs );
+
+        	for( size_t i = 0; i < lhs._matrix_data.size(); ++i )
+        		if( lhs._matrix_data[i] != rhs._matrix_data[i] )
+        			return true;
+
+        	return false;
+        }
+
+	    friend matrix operator+( const matrix& lhs, const matrix& rhs )
+	    {
+	        auto tmp = lhs;
+	        tmp += rhs;
+	        return tmp;
+	    }
+	     
+	    friend matrix operator*( const matrix& lhs, const matrix& rhs )
+	    {
+	    	if( lhs.width() != rhs.height() )
+				throw std::invalid_argument( "Matrix sizes mismatch" );
+
+			size_type magic_number = lhs.width();
+
+	        return matrix( lhs.height(), rhs.width(), 
+	        				[magic_number, &lhs, &rhs]( auto r, auto c )
+	        				{
+	        					value_type val( 0 );
+	        					for( size_type i = 0; i < magic_number; ++i )
+	        						val += lhs( r, i ) * rhs( i, c );
+
+	        					return val;
+	        				}
+	        	   );
+	    }
+	    
+
 	protected:
 		size_type   _width;
 		size_type   _height;
 		matrix_type _matrix_data;
-	};
 
-	template< class T >
-    matrix<T> operator+( const matrix<T>& lhs, const matrix<T>& rhs )
-    {
-        auto tmp = lhs;
-        tmp += rhs;
-        return tmp;
-    }
+		static void _check_size_with_exception( const matrix& lhs, const matrix& rhs )
+		{
+			if( (lhs._width != rhs._width) | (lhs._height != rhs._height) ) {
+				throw std::invalid_argument( "Matrix sizes mismatch" );
+			}
+		}
+	};
 }
