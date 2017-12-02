@@ -78,7 +78,7 @@ namespace types {
             return  *this;
 		}
 
-		matrix( const std::initializer_list<std::initializer_list<value_type>>& rows )
+		matrix( std::initializer_list<std::initializer_list<value_type>> rows )
 		{
             _height = rows.size();
 
