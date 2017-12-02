@@ -1,4 +1,5 @@
 #include "Matrix.hpp"
+#include <vector>
 
 namespace mlp_layer
 {
@@ -12,5 +13,9 @@ namespace mlp_layer
         virtual layer& make_layer() = 0;
     };
 
-
+    template <class T>
+    types::matrix<T> make_vector(const std::vector<T>& data)
+    {
+        return types::matrix(1, data.size(), data.begin(), data.end());
+    }
 }
