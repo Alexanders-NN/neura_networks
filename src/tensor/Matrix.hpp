@@ -1,10 +1,11 @@
 #pragma once
 
+#include <exception>
+#include <functional>
 #include <iostream>
 #include <vector>
 
 
-//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
 
 namespace types {
 
@@ -14,121 +15,206 @@ namespace types {
 
 	public:
 		using value_type = T;
-		using size_type = size_t;
+		using size_type = std::size_t;
 		using matrix_type = std::vector<value_type>;
+		using init_func_type = std::function<value_type( size_type, size_type )>;
 
 	public:
 
-		matrix(value_type matrix_width = 0, value_type matrix_heigth = 0)
-			: width( matrix_width )
-			, heigth( matrix_heigth )
-			, matrix_data( matrix_width * matrix_heigth )
+
+		matrix( size_type height = 0, size_type width = 0,
+			value_type default_value = value_type(0))
+			: _width( width )
+			, _height( height )
+			, _matrix_data( width * height, default_value )
 		{}
 
-
-		matrix(const matrix& obj) 
+		matrix( size_type height, size_type width, init_func_type function )
+			: _width( width )
+			, _height( height )
+			, _matrix_data( width * height )
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+			for( size_type row = 0; row < _height; ++row )
+				for( size_type col = 0; col < _width; ++col )
+					(*this)( row, col ) = function( row, col );
+		}	
+
+
+		matrix( const matrix& obj )
+            : _width( obj._width )
+            , _height( obj._height )
+            , _matrix_data( obj._matrix_data )
+        {}
+
+		matrix( matrix&& obj )
+            : _width( 0 )
+            , _height( 0 )
+            , _matrix_data()
+		{
+			std::swap( _height, obj._height );
+			std::swap( _width, obj._width );
+			std::swap( _matrix_data, obj._matrix_data );
 		}
 
-		matrix(matrix&& obj) 
+		matrix& operator=( const matrix& obj ) 
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+            if ( this != &obj )
+            {
+                _height = obj._height;
+                _width = obj._width;
+                _matrix_data = obj._matrix_data;
+            }
+            return  *this;
 		}
 
-		matrix& operator=(const matrix& obj) 
+		matrix& operator=( matrix&& obj )
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
+            if ( this != &obj )
+            {
+                std::swap( _height, obj._height);
+				std::swap( _width, obj._width);
+				std::swap( _matrix_data, obj._matrix_data);
+            }
+            return  *this;
 		}
 
-		matrix& operator=(matrix&& obj) 
+		matrix( std::initializer_list<std::initializer_list<value_type>> rows )
 		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-		}
+            _height = rows.size();
 
-		matrix(std::initializer_list<std::initializer_list<value_type>>& rows)
-		{
-			//It is necessary to realize until the evening of Sunday (deadline = 19.11.17 / 22: 00)
-			/*
-				//It should work: 
-				matrix m = {
-					{ 0,   5,  3, 7  },
-					{ 0,  42,  3, 7  },
-					{ 50,  5, -3, 7  },
-					{ 0,  15,  3, 7  },
-					{ 0,   5,  3, 71 },
-					{ 0,   5,  3, 73 },
-				};
-				
-				//But it shouldn't:
-				matrix m = {
-					{ 0,   5,  3, 7  },
-					{ 0,  42,  3, 7  },
-					{ 50,  5, -3, 7  },
-					{ 0,  15,  3 },    // <- Row size mismatch!!! Throw exception (any type U want)
-					{ 0,   5,  3, 71 },
-					{ 0,   5,  3, 73 },
-				};
+            if( _height ) {
 
-			*/
+	          	_width  = rows.begin()->size();
+
+	            for ( auto& row : rows )
+	            {
+	                if ( row.size() != _width )
+					{
+						_height = 0;
+						_width = 0;
+						_matrix_data.clear();
+
+						throw std::logic_error( "Error! Incorrect initialization matrix" );
+					}
+	                _matrix_data.insert( _matrix_data.end(), std::begin(row), std::end(row) );
+	            }
+	       	}
+	       	else {
+	       		_width = 0;
+	       	}
 		}
 
 
 		template<class It>
-		matrix(value_type matrix_width, value_type matrix_heigth, It begin, It end)
-			: width( matrix_width )
-			, heigth( matrix_heigth )
-			, matrix_data( begin, end ) // Does it work?
+		matrix( size_type height, size_type width, It begin, It end )
+			: _width( width )
+			, _height( height )
+			, _matrix_data( begin, end )
 		{
-			if( matrix.size() != width * heigth ) {
-				width = 0;
-				heigth = 0;
-				matrix_data.clear();
+			if( _matrix_data.size() != _width * _height ) {
+				_width = 0;
+				_height = 0;
+				_matrix_data.clear();
+                
+                throw std::logic_error( "Error! Incorrect initialization matrix" );
 			}
 		}
 
-		template<class It>
-		bool fill_by_sequence(It begin, It end) 
+		const value_type& operator()( size_type row, size_type col ) const
 		{
-			matrix_type new_matrix( begin, end );
-
-			if( matrix_data.size() != width * heigth ) {
-				return false;
-			}
-
-			matrix_data = std::move(new_matrix);
-
-			return true;
+			return _matrix_data[ _width * row + col ];
 		}
 
-
-		const value_type& operator()(size_type x, size_type y) const
+		value_type& operator()( size_type row, size_type col )
 		{
-			return matrix_data[heigth * y + x];
+			return const_cast<value_type&>( const_cast<const matrix&>(*this)( row, col ) );
 		}
-
-		value_type& operator()(size_type x, size_type y)
-		{
-			return static_cast<value_type&>( const_cast<const matrix&>(*this)( x, y ) );
-		}
-
 
 		size_type width() const
 		{
-			return width;
+			return _width;
 		}
 
-		size_type heigth() const
+		size_type height() const
 		{
-			return heigth;
+			return _height;
 		}
 
-		~matrix() = default;
+		const matrix_type& data() const
+		{
+			return _matrix_data;
+		}
+
+		matrix& operator+=( const matrix& rhs )
+        {
+        	_check_size_with_exception( *this, rhs );
+
+            for( size_t i = 0; i < this->_matrix_data.size(); ++i )
+            {
+                this->_matrix_data[i] += rhs._matrix_data[i];
+            }
+            return *this;
+        }
+
+        friend bool operator==( const matrix& lhs, const matrix& rhs )
+        {
+        	_check_size_with_exception( lhs, rhs );
+
+        	for( size_t i = 0; i < lhs._matrix_data.size(); ++i )
+        		if( lhs._matrix_data[i] != rhs._matrix_data[i] )
+        			return false;
+
+        	return true;
+        }
+
+        friend bool operator!=( const matrix& lhs, const matrix& rhs )
+        {
+        	_check_size_with_exception( lhs, rhs );
+
+        	for( size_t i = 0; i < lhs._matrix_data.size(); ++i )
+        		if( lhs._matrix_data[i] != rhs._matrix_data[i] )
+        			return true;
+
+        	return false;
+        }
+
+	    friend matrix operator+( const matrix& lhs, const matrix& rhs )
+	    {
+	        auto tmp = lhs;
+	        tmp += rhs;
+	        return tmp;
+	    }
+	     
+	    friend matrix operator*( const matrix& lhs, const matrix& rhs )
+	    {
+	    	if( lhs.width() != rhs.height() )
+				throw std::invalid_argument( "Matrix sizes mismatch" );
+
+			size_type magic_number = lhs.width();
+
+	        return matrix( lhs.height(), rhs.width(), 
+	        				[magic_number, &lhs, &rhs]( auto r, auto c )
+	        				{
+	        					value_type val( 0 );
+	        					for( size_type i = 0; i < magic_number; ++i )
+	        						val += lhs( r, i ) * rhs( i, c );
+
+	        					return val;
+	        				}
+	        	   );
+	    }
+	    
 
 	protected:
-		size_type width;
-		size_type heigth;
-		matrix_type matrix_data;
-	};
+		size_type   _width;
+		size_type   _height;
+		matrix_type _matrix_data;
 
+		static void _check_size_with_exception( const matrix& lhs, const matrix& rhs )
+		{
+			if( (lhs._width != rhs._width) | (lhs._height != rhs._height) ) {
+				throw std::invalid_argument( "Matrix sizes mismatch" );
+			}
+		}
+	};
 }

@@ -7,11 +7,11 @@
 
 class convolution_layer
 {
-	using value_type = std::vector<Tensor<double>>;
+	using value_type = std::vector<tensor<double>>;
 	using size_type = size_t;
 
-	value_type Layer;
-	size_type Namber;
+	value_type layer;
+	size_type namber;
 
 public:
 	convolution_layer();
@@ -20,5 +20,5 @@ public:
 
 	~convolution_layer();
 
-	Tensor<double>& operator()(Tensor<double>&);
+	tensor<double>& operator()(tensor<double>&);
 };
