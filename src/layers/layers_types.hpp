@@ -6,7 +6,7 @@ namespace layers {
 
     enum class types {
         linear,      // y = Wx+b
-        function,    // [[[ y ]]] = [[[ f(x) ]]]
+        function,    // [[[ y ]]] = [[[ f(x) ]]] то
         convolution, // y = [ x*k1, x*k2, ... , x*kn ]
         pooling,     // y = pooling( x, rules )
         dropout,     // [[[ y ]]] = 0 | [[[ x ]]] : p | (1-p)
@@ -17,7 +17,7 @@ namespace layers {
     {
     public:
         layer_info( types layer_type )
-            : _type( layer_type )
+                : _type( layer_type )
         {}
 
         auto who_am_i() const -> types
@@ -35,11 +35,14 @@ namespace layers {
     };
 
     template< class T >
-    class function_layer_parameter;
+    struct function_layer_parameter;
 
 
     template< class T >
-    class linear_layer_parameter;
+    struct linear_layer_parameter;
+
+    template <class T >
+    struct dropout_parameter;
 
     /*
     template< class T >
@@ -52,18 +55,19 @@ namespace layers {
 
     template< class T >
     struct union_parameter
-        : layer_info
+            : layer_info
     {
         using union_t = std::variant<
                 //empty_parameter
-                  function_layer_parameter<T>
+                function_layer_parameter<T>
                 , linear_layer_parameter<T>
-            >;
+                , dropout_parameter<T>
+        >;
 
         template< class Union >
         union_parameter( types type, Union&& u_parameter )
-            : layer_info( type )
-            , _param_union( std::forward<Union>(u_parameter) )
+                : layer_info( type )
+                , _param_union( std::forward<Union>(u_parameter) )
         {}
 
         union_t _param_union;
